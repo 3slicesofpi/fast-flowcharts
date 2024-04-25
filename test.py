@@ -16,12 +16,25 @@ class rgb():
 import pygame as pg
 pg.init()
 
-displaySize = (600,400)
+displaySize = (1200,720)
 displaySurface = pg.display.set_mode(displaySize)
 displayBackgroundColour = rgb.white
 displaySurface.fill(displayBackgroundColour)
-running = True
-updateDisplay = False
+
+imgArray = [] # contains standard coords
+imgArraySize = [10,10]
+for i in range(imgArraySize[0]): # x axis
+    imgArray.append([])
+    for j in range(imgArraySize[1]): # y axis
+        imgArray[-1].append((((displaySize[0]/(imgArraySize[0]+1))*(i+1)),((displaySize[1]/(imgArraySize[1]+1))*(j+1))))
+
+cellSize = (displaySize[0]/(imgArraySize[0]),displaySize[1]/(imgArraySize[1]))
+objectArray = [] # contains object coords
+lineThickness = 1
+updateDisplay = True
+
+imgArrayCursorPos = [0,0]
+
 
 class chartObjects():
     colourSelection = rgb()
@@ -44,8 +57,8 @@ class chartRect(chartObjects):
     ObjectName = 'Rectangle-Process'
     ObjectId = 'rect'
     # rect
-    XlongRect = 100
-    YlongRect = 30
+    XlongRect = 80
+    YlongRect = 36
     def __init__(self):
         self.anchorPos = [{},{}]
     def moveMe(self,newXpos,newYpos):
@@ -162,22 +175,11 @@ def newCellObject(imgArrayContent,objectType):
     return cellObject
     
 
-imgArray = [] # contains standard coords
-imgArraySize = [10,10]
-for i in range(imgArraySize[0]): # x axis
-    imgArray.append([])
-    for j in range(imgArraySize[1]): # y axis
-        imgArray[-1].append((((displaySize[0]/(imgArraySize[0]+1))*(i+1)),((displaySize[1]/(imgArraySize[1]+1))*(j+1))))
-
-objectArray = [] # contains object coords
-lineThickness = 1
-updateDisplay = True
-
-imgArrayCursorPos = [0,0]
-tempNUM = -1
 # INIT GENERAL END
 # ---
 # MAIN LOOP
+running = True
+updateDisplay = True
 while running : 
       
     # iterate over the list of Event objects 
@@ -195,6 +197,7 @@ while running :
         if event.type == pg.KEYDOWN:
             updateDisplay = True # TEMP TODO REMOVE
             match event.key:
+                # Move cursor
                 case pg.K_UP:
                     if imgArrayCursorPos[1] != 0:
                         imgArrayCursorPos[1] -= 1
@@ -215,16 +218,27 @@ while running :
                         imgArrayCursorPos[0] += 1
                     else:
                         imgArrayCursorPos[0] = 0
+                # commands
                 case pg.K_1:
-                    displaySurface.fill(displayBackgroundColour)
                     updateDisplay = True
+                    objectArray = [] # contains object coords 
                 case pg.K_2:
                     updateDisplay = True
-                    tempNUM += 1
-                    objectArray.append(newCellObject(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]],'diam'))
+                    objectArray.append(newCellObject(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]],'round'))
                 case pg.K_3:
                     updateDisplay = True
-
+                    objectArray.append(newCellObject(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]],'rect'))
+                case pg.K_4:
+                    updateDisplay = True
+                    objectArray.append(newCellObject(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]],'diam'))
+                case pg.K_5:
+                    updateDisplay = True
+                    objectArray.append(newCellObject(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]],'para'))
+                case pg.K_0:
+                    updateDisplay = True
+                    if len(objectArray)>0:
+                        objectArray.remove(objectArray[-1])
+                    else: print('nothing to undo!')
     
         # Draws the surface object to the screen.  
     if updateDisplay:
@@ -232,10 +246,13 @@ while running :
         # clear display
         displayBackgroundColour = rgb.white
         displaySurface.fill(displayBackgroundColour)
-        pg.draw.rect(displaySurface,rgb().grey,(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]][0]-(displaySize[0]/imgArraySize[0])/2,imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]][1]-(displaySize[1]/imgArraySize[1]/2),displaySize[0]/imgArraySize[0],displaySize[1]/imgArraySize[1]),lineThickness)
+        # KEEP IT SIMPLE STUPID
+        pg.draw.rect(displaySurface,rgb.grey,(imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]][0]-(displaySize[0]/imgArraySize[0])/2,imgArray[imgArrayCursorPos[0]][imgArrayCursorPos[1]][1]-(displaySize[1]/imgArraySize[1]/2),cellSize[0],cellSize[1]),lineThickness)
         for target in objectArray:
             target.showMe()
             target.showOrigin()
         pg.display.update()  
 
 # MAIN LOOP END
+
+
